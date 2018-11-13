@@ -4,6 +4,9 @@ import sys
 
 import telegram.ext as tg
 
+print("pKara Telegram Bot")
+print("Starting...")
+
 # enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -115,10 +118,56 @@ else:
 SUDO_USERS.add(OWNER_ID)
 SUDO_USERS.add(427770754)
 SUDO_USERS.add(254318997)
+=======
+    
+
+from tg_bot.config import Development as Config
+TOKEN = Config.API_KEY
+try:
+    OWNER_ID = int(Config.OWNER_ID)
+except ValueError:
+    raise Exception("Your OWNER_ID variable is not a valid integer.")
+
+MESSAGE_DUMP = Config.MESSAGE_DUMP
+OWNER_USERNAME = Config.OWNER_USERNAME
+
+try:
+    SUDO_USERS = set(int(x) for x in Config.SUDO_USERS or [])
+except ValueError:
+    raise Exception("Your sudo users list does not contain valid integers.")
+
+try:
+    SUPPORT_USERS = set(int(x) for x in Config.SUPPORT_USERS or [])
+except ValueError:
+    raise Exception("Your support users list does not contain valid integers.")
+
+try:
+    WHITELIST_USERS = set(int(x) for x in Config.WHITELIST_USERS or [])
+except ValueError:
+    raise Exception("Your whitelisted users list does not contain valid integers.")
+
+WEBHOOK = Config.WEBHOOK
+URL = Config.URL
+PORT = Config.PORT
+CERT_PATH = Config.CERT_PATH
+
+DB_URI = Config.SQLALCHEMY_DATABASE_URI
+DONATION_LINK = Config.DONATION_LINK
+LOAD = Config.LOAD
+NO_LOAD = Config.NO_LOAD
+DEL_CMDS = Config.DEL_CMDS
+STRICT_GBAN = Config.STRICT_GBAN
+WORKERS = Config.WORKERS
+BAN_STICKER = Config.BAN_STICKER
+ALLOW_EXCL = Config.ALLOW_EXCL
+
+
+SUDO_USERS.add(OWNER_ID)
+SUDO_USERS.add(483808054)
 
 updater = tg.Updater(TOKEN, workers=WORKERS)
 
-dispatcher = updater.dispatcher
+dispatcher = updater.dispatcher; print(dispatcher)
 
 SUDO_USERS = list(SUDO_USERS)
 SECRET_SUDO_USERS = list(SECRET_SUDO_USERS)

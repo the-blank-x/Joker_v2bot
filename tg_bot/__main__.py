@@ -4,7 +4,7 @@ import re
 from typing import Optional, List
 
 from telegram import Message, Chat, Update, Bot, User
-from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from telegram.error import Unauthorized, BadRequest, TimedOut, NetworkError, ChatMigrated, TelegramError
 from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
@@ -51,6 +51,8 @@ the things I can help you with.
 {}
 And the following:
 """.format(dispatcher.bot.first_name, "" if not ALLOW_EXCL else "\nAll commands can either be used with / or !.\n")
+=======
+from tg_bot.modules.translations.strings import tld, tld_help
 
 DONATE_STRING = """Heya, glad to hear you want to donate!
 If you want to donate, PM [YasiR Siddiqui](t.me/Yasirsiddiqui), and ask for donate. \
@@ -106,7 +108,7 @@ for module_name in ALL_MODULES:
 # do not async
 def send_help(chat_id, text, keyboard=None):
     if not keyboard:
-        keyboard = InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help"))
+        keyboard = InlineKeyboardMarkup(paginate_modules(chat_id, 0, HELPABLE, "help"))
     dispatcher.bot.send_message(chat_id=chat_id,
                                 text=text,
                                 parse_mode=ParseMode.MARKDOWN,
@@ -123,10 +125,13 @@ def test(bot: Bot, update: Update):
 
 @run_async
 def start(bot: Bot, update: Update, args: List[str]):
+    print("Start")
+    chat = update.effective_chat  # type: Optional[Chat]
+    query = update.callback_query
     if update.effective_chat.type == "private":
         if len(args) >= 1:
             if args[0].lower() == "help":
-                send_help(update.effective_chat.id, HELP_STRINGS)
+                send_help(update.effective_chat.id, tld(chat.id, "send-help"))
 
             elif args[0].lower().startswith("stngs_"):
                 match = re.match("stngs_(.*)", args[0].lower())
@@ -142,11 +147,16 @@ def start(bot: Bot, update: Update, args: List[str]):
 
         else:
             first_name = update.effective_user.first_name
-            update.effective_message.reply_text(
-                PM_START_TEXT.format(escape_markdown(first_name), escape_markdown(bot.first_name), OWNER_ID),
-                parse_mode=ParseMode.MARKDOWN)
+            #update.effective_message.reply_text(tld(chat.id, "send-start"), parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(tld(chat.id, "send-start").format(escape_markdown(first_name), escape_markdown(bot.first_name), OWNER_ID), parse_mode=ParseMode.MARKDOWN,
+                                            reply_markup=InlineKeyboardMarkup(
+                                         [[InlineKeyboardButton(text="Help", callback_data="help_back")]]))
     else:
         update.effective_message.reply_text("Sar, I'm alive :D")
+
+    update.effective_message.reply_text(tld(chat.id, "test"), parse_mode=ParseMode.MARKDOWN,
+                                            reply_markup=ReplyKeyboardMarkup([[KeyboardButton("/help - Bot Help"), KeyboardButton("/donate - Donate")],
+                                             [KeyboardButton("/notes - Notes"), KeyboardButton("/connect - Connect to chat")]]))
 
 
 # for test purposes
@@ -181,6 +191,7 @@ def error_callback(bot, update, error):
 @run_async
 def help_button(bot: Bot, update: Update):
     query = update.callback_query
+    chat = update.effective_chat  # type: Optional[Chat]
     mod_match = re.match(r"help_module\((.+?)\)", query.data)
     prev_match = re.match(r"help_prev\((.+?)\)", query.data)
     next_match = re.match(r"help_next\((.+?)\)", query.data)
@@ -188,8 +199,9 @@ def help_button(bot: Bot, update: Update):
     try:
         if mod_match:
             module = mod_match.group(1)
-            text = "Here is the help for the *{}* module:\n".format(HELPABLE[module].__mod_name__) \
-                   + HELPABLE[module].__help__
+
+            text = tld(chat.id, "Here is the help for the ") + tld(chat.id, HELPABLE[module].__mod_name__) + tld(chat.id, " module:\n")\
+                   + tld(chat.id, HELPABLE[module]).__help__
             query.message.reply_text(text=text,
                                      parse_mode=ParseMode.MARKDOWN,
                                      reply_markup=InlineKeyboardMarkup(
@@ -197,22 +209,23 @@ def help_button(bot: Bot, update: Update):
 
         elif prev_match:
             curr_page = int(prev_match.group(1))
-            query.message.reply_text(HELP_STRINGS,
+            query.message.reply_text(tld(chat.id, "send-help"),
                                      parse_mode=ParseMode.MARKDOWN,
                                      reply_markup=InlineKeyboardMarkup(
-                                         paginate_modules(curr_page - 1, HELPABLE, "help")))
+                                         paginate_modules(chat.id, curr_page - 1, HELPABLE, "help")))
 
         elif next_match:
             next_page = int(next_match.group(1))
-            query.message.reply_text(HELP_STRINGS,
+            query.message.reply_text(tld(chat.id, "send-help"),
                                      parse_mode=ParseMode.MARKDOWN,
                                      reply_markup=InlineKeyboardMarkup(
-                                         paginate_modules(next_page + 1, HELPABLE, "help")))
+                                         paginate_modules(chat.id, next_page + 1, HELPABLE, "help")))
 
         elif back_match:
-            query.message.reply_text(text=HELP_STRINGS,
+            query.message.reply_text(text=tld(chat.id, "send-help"),
                                      parse_mode=ParseMode.MARKDOWN,
-                                     reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+                                     reply_markup=InlineKeyboardMarkup(
+                                         paginate_modules(chat.id, 0, HELPABLE, "help")))
 
         # ensure no spinny white circle
         bot.answer_callback_query(query.id)
@@ -250,7 +263,7 @@ def get_help(bot: Bot, update: Update):
         send_help(chat.id, text, InlineKeyboardMarkup([[InlineKeyboardButton(text="Back", callback_data="help_back")]]))
 
     else:
-        send_help(chat.id, HELP_STRINGS)
+        send_help(chat.id, tld(chat.id, "send-help"))
 
 
 def send_settings(chat_id, user_id, user=False):
@@ -454,7 +467,6 @@ def main():
 
     updater.idle()
 
-
 CHATS_CNT = {}
 CHATS_TIME = {}
 
@@ -512,4 +524,5 @@ def process_update(self, update):
 
 if __name__ == '__main__':
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
+    LOGGER.info("Successfully loaded")
     main()
