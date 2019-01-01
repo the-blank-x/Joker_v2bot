@@ -20,4 +20,3 @@ pyowm
 spongemock
 geopy
 PyLyrics
-googletrans
