@@ -20,7 +20,6 @@ lxml
 pyowm
 spongemock
 geopy
-gsearch
 wikipedia
 PyLyrics
 googletrans
