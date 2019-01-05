@@ -51,7 +51,6 @@ the things I can help you with.
 {}
 And the following:
 """.format(dispatcher.bot.first_name, "" if not ALLOW_EXCL else "\nAll commands can either be used with / or !.\n")
-=======
 from tg_bot.modules.translations.strings import tld, tld_help
 
 DONATE_STRING = """Heya, glad to hear you want to donate!

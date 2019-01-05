@@ -127,6 +127,7 @@ def user_admin(func):
 
         else:
             update.effective_message.reply_text("Only admins are allowed to perform this action")
+
         elif (admin_sql.command_reaction(chat.id) == True):
             update.effective_message.reply_text("Who dis non-admin telling me what to do?")
 

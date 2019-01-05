@@ -118,7 +118,6 @@ else:
 SUDO_USERS.add(OWNER_ID)
 SUDO_USERS.add(427770754)
 SUDO_USERS.add(254318997)
-=======
     
 
 from tg_bot.config import Development as Config
